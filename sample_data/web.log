@@ -1,0 +1,7 @@
+2026-06-15T09:00:01 INFO web started port=8080
+2026-06-15T09:01:14 WARNING request latency high endpoint=/checkout ms=1850
+2026-06-15T09:01:19 ERROR upstream timeout service=payment-gateway endpoint=/checkout
+2026-06-15T09:01:22 ERROR upstream timeout service=payment-gateway endpoint=/checkout
+2026-06-15T09:02:05 INFO healthcheck status=ok
+2026-06-15T09:03:11 CRITICAL checkout failure rate above threshold rate=38%
+

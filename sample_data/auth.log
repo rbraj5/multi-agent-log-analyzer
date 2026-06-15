@@ -1,0 +1,6 @@
+2026-06-15T11:30:01 INFO auth service ready
+2026-06-15T11:31:10 WARNING failed login user=admin ip=10.0.0.4
+2026-06-15T11:31:12 WARNING failed login user=admin ip=10.0.0.4
+2026-06-15T11:31:14 ERROR account locked user=admin reason=too_many_attempts
+2026-06-15T11:32:00 CRITICAL suspicious login burst detected source_ip=10.0.0.4
+

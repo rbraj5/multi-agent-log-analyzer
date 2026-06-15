@@ -1,0 +1,6 @@
+2026-06-15T10:12:00 INFO database connection pool initialized size=10
+2026-06-15T10:12:41 WARNING slow query table=orders duration_ms=2300
+2026-06-15T10:13:02 ERROR deadlock detected transaction_id=tx-812
+2026-06-15T10:13:05 ERROR connection pool exhausted active=10 waiting=17
+2026-06-15T10:13:18 WARNING retry succeeded transaction_id=tx-812
+
