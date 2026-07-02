@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import streamlit as st
 
-from src.log_analyzer import SAMPLES, analyze_logs, load_sample
+from src.graph import run_log_analysis_workflow
+from src.log_analyzer import SAMPLES, load_sample
 
 
 def main() -> None:
@@ -14,9 +15,23 @@ def main() -> None:
     log_text = st.text_area("Log input", default_log, height=260)
 
     if st.button("Analyze logs", type="primary"):
-        report = analyze_logs(log_text)
-        st.markdown(report)
-        st.download_button("Download report", report, "log_analysis_report.md")
+        state = run_log_analysis_workflow(log_text)
+        st.caption(f"Execution mode: {state['execution_mode']}")
+        st.write("Completed graph nodes:", " -> ".join(state["completed_nodes"]))
+
+        if state.get("warnings"):
+            for warning in state["warnings"]:
+                st.warning(warning)
+
+        with st.expander("Parsed Issues", expanded=True):
+            st.json([issue.model_dump() for issue in state["parsed_issues"]])
+        with st.expander("Investigated Issues", expanded=True):
+            st.json([issue.model_dump() for issue in state["investigated_issues"]])
+        with st.expander("Priority Assessment", expanded=True):
+            st.json(state["priority"].model_dump())
+
+        st.markdown(state["report"])
+        st.download_button("Download report", state["report"], "log_analysis_report.md")
 
 
 if __name__ == "__main__":

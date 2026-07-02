@@ -1,24 +1,34 @@
 # Multi-Agent Log Analyzer
 
-Multi-Agent Log Analyzer is a CLI-first Python utility for triaging application logs. It parses warning, error, and critical events, groups repeated issues, infers likely causes, and generates a Markdown remediation report suitable for operational handoff.
+Multi-Agent Log Analyzer is a CLI-first Python utility for triaging application logs. The application uses LangGraph to orchestrate parsing, investigation, prioritization, and remediation reporting, with optional LangChain/OpenAI synthesis for operational handoff notes.
 
 ## Operational Context
 
-The system supports incident review and service-health investigation where engineers need a quick, repeatable summary of noisy logs. It can run against bundled sample logs, pasted inline logs, or local log files without external services.
+The system supports incident review and service-health investigation where engineers need a quick, repeatable summary of noisy logs. Parsing, grouping, severity scoring, and remediation mapping are deterministic so operational facts remain reproducible.
 
-## Agent Workflow
+## LangGraph Workflow
 
-- **Log Parser:** extracts warning, error, and critical events from raw log text.
-- **Issue Investigator:** groups repeated events and assigns a severity score.
-- **Fix Recommender:** maps issue patterns to likely causes and remediation steps.
+```text
+parse_logs -> investigate_issues -> prioritize_findings -> recommend_remediation
+```
+
+- **parse_logs:** extracts warning, error, and critical events from raw log text.
+- **investigate_issues:** groups repeated events and attaches likely causes and remediation guidance.
+- **prioritize_findings:** assigns overall priority based on highest severity.
+- **recommend_remediation:** generates the final Markdown handoff through deterministic fallback or optional LLM synthesis.
+
+## Execution Modes
+
+- **Deterministic fallback:** runs without API keys and generates reports from structured issue findings.
+- **LLM-assisted synthesis:** uses `langchain-openai` when `OPENAI_API_KEY` is configured. The LLM receives structured incident summaries only.
 
 ## Capabilities
 
 - CLI analysis for sample, inline, or file-based logs
 - Optional Streamlit interface for interactive review
+- LangGraph node execution trace in the UI
 - Grouping of repeated operational events
 - Severity assessment across warning, error, and critical levels
-- Root-cause notes for common failure patterns
 - Markdown remediation report generation
 
 ## Repository Structure
@@ -28,13 +38,14 @@ multi-agent-log-analyzer/
 |-- app.py
 |-- src/
 |   |-- __init__.py
-|   `-- log_analyzer.py
+|   |-- graph.py
+|   |-- log_analyzer.py
+|   |-- schemas.py
+|   `-- tools.py
 |-- sample_data/
 |   |-- auth.log
 |   |-- database.log
 |   `-- web.log
-|-- screenshots/
-|   `-- .gitkeep
 |-- .env.example
 |-- .gitignore
 |-- LICENSE
@@ -65,13 +76,3 @@ python -m src.log_analyzer --inline "2026-06-15 ERROR payment timeout"
 ```powershell
 streamlit run app.py
 ```
-
-## Report Output
-
-Generated reports include:
-
-- issue triage table
-- severity assessment
-- likely root-cause notes
-- remediation checklist
-- priority recommendation
