@@ -9,12 +9,13 @@ The system supports incident review and service-health investigation where engin
 ## LangGraph Workflow
 
 ```text
-parse_logs -> investigate_issues -> prioritize_findings -> recommend_remediation
+parse_logs -> investigate_issues -> prioritize_findings -> escalate_incident? -> recommend_remediation
 ```
 
 - **parse_logs:** extracts warning, error, and critical events from raw log text.
 - **investigate_issues:** groups repeated events and attaches likely causes and remediation guidance.
 - **prioritize_findings:** assigns overall priority based on highest severity.
+- **escalate_incident:** conditionally routes high-priority runs through an on-call escalation decision.
 - **recommend_remediation:** generates the final Markdown handoff through deterministic fallback or optional LLM synthesis.
 
 ## Execution Modes
@@ -28,8 +29,17 @@ parse_logs -> investigate_issues -> prioritize_findings -> recommend_remediation
 - Optional Streamlit interface for interactive review
 - LangGraph node execution trace in the UI
 - Grouping of repeated operational events
+- Timestamp, key-value attribute, and affected-entity extraction
 - Severity assessment across warning, error, and critical levels
+- Conditional escalation branch for high-priority incidents
+- Structured graph trace events for node-level observability
 - Markdown remediation report generation
+
+## Productionization Notes
+
+The graph now includes conditional routing rather than a purely linear flow. High-priority incidents take an escalation branch before remediation, while normal warning-only logs skip escalation. This mirrors a common production incident workflow where severe findings require an on-call review path and lower-priority findings stay in routine triage.
+
+Future production extensions would include durable LangGraph checkpointing, LangSmith tracing, deployment configuration, structured JSON log ingestion, service ownership metadata, and incident timeline correlation across multiple services.
 
 ## Repository Structure
 

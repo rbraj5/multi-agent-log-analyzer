@@ -29,6 +29,11 @@ def main() -> None:
             st.json([issue.model_dump() for issue in state["investigated_issues"]])
         with st.expander("Priority Assessment", expanded=True):
             st.json(state["priority"].model_dump())
+        if state.get("escalation"):
+            with st.expander("Escalation Decision", expanded=True):
+                st.json(state["escalation"].model_dump())
+        with st.expander("Graph Trace", expanded=False):
+            st.json([event.model_dump() for event in state["trace_events"]])
 
         st.markdown(state["report"])
         st.download_button("Download report", state["report"], "log_analysis_report.md")

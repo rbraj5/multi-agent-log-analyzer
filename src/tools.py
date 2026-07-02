@@ -3,16 +3,29 @@ from __future__ import annotations
 import re
 from collections import Counter
 
-from src.schemas import InvestigatedIssue, ParsedIssue, PriorityAssessment
+from src.schemas import EscalationDecision, InvestigatedIssue, ParsedIssue, PriorityAssessment
 
 LEVEL_SCORE = {"WARNING": 2, "ERROR": 4, "CRITICAL": 5}
+ISSUE_PATTERN = re.compile(r"^(?:(?P<timestamp>\S+)\s+)?(?P<level>WARNING|ERROR|CRITICAL)\s+(?P<message>.*)$")
+ATTRIBUTE_PATTERN = re.compile(r"(?P<key>[A-Za-z_][A-Za-z0-9_]*)=(?P<value>[^\s]+)")
 
 
 def parse_issue_line(line: str) -> ParsedIssue | None:
-    match = re.search(r"\b(WARNING|ERROR|CRITICAL)\b\s+(.*)", line)
+    match = ISSUE_PATTERN.search(line)
     if not match:
         return None
-    return ParsedIssue(level=match.group(1), message=match.group(2).strip())
+    message = match.group("message").strip()
+    attributes = {
+        match.group("key"): match.group("value")
+        for match in ATTRIBUTE_PATTERN.finditer(message)
+    }
+    return ParsedIssue(
+        level=match.group("level"),
+        message=message,
+        timestamp=match.group("timestamp"),
+        attributes=attributes,
+        raw_line=line,
+    )
 
 
 def parse_logs(log_text: str) -> list[ParsedIssue]:
@@ -60,6 +73,16 @@ def investigate_issues(parsed_issues: list[ParsedIssue]) -> list[InvestigatedIss
     grouped = Counter((issue.level, issue.message) for issue in parsed_issues)
     investigated: list[InvestigatedIssue] = []
     for (level, message), count in grouped.most_common():
+        group_items = [issue for issue in parsed_issues if issue.level == level and issue.message == message]
+        timestamps = [issue.timestamp for issue in group_items if issue.timestamp]
+        affected_entities = sorted(
+            {
+                value
+                for issue in group_items
+                for key, value in issue.attributes.items()
+                if key in {"service", "endpoint", "table", "user", "ip", "source_ip"}
+            }
+        )
         severity = min(5, LEVEL_SCORE[level] + (1 if count > 1 else 0))
         investigated.append(
             InvestigatedIssue(
@@ -67,6 +90,9 @@ def investigate_issues(parsed_issues: list[ParsedIssue]) -> list[InvestigatedIss
                 message=message,
                 count=count,
                 severity=severity,
+                first_seen=min(timestamps) if timestamps else None,
+                last_seen=max(timestamps) if timestamps else None,
+                affected_entities=affected_entities,
                 likely_cause=infer_cause(message),
                 remediation=recommend_fix(message),
             )
@@ -99,4 +125,28 @@ def prioritize_findings(issues: list[InvestigatedIssue]) -> PriorityAssessment:
         highest_severity=highest,
         priority="Normal",
         rationale="Warnings are present and can be handled during normal maintenance.",
+    )
+
+
+def decide_escalation(priority: PriorityAssessment, issues: list[InvestigatedIssue]) -> EscalationDecision:
+    if priority.priority != "High":
+        return EscalationDecision(
+            required=False,
+            channel="None",
+            rationale="No high-priority incident pattern was detected.",
+            owner_hint="Service owner review during normal triage.",
+        )
+
+    critical_or_repeated = [
+        issue
+        for issue in issues
+        if issue.level == "CRITICAL" or issue.count > 1 or issue.severity >= 5
+    ]
+    entities = sorted({entity for issue in critical_or_repeated for entity in issue.affected_entities})
+    owner_hint = f"Escalate to owner for {', '.join(entities)}." if entities else "Escalate to the on-call service owner."
+    return EscalationDecision(
+        required=True,
+        channel="On-call incident review",
+        rationale=priority.rationale,
+        owner_hint=owner_hint,
     )
