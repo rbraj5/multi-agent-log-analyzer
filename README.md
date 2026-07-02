@@ -1,47 +1,48 @@
 # Multi-Agent Log Analyzer
 
-A CLI-first Python project that reviews application logs through a small multi-agent workflow.
+Multi-Agent Log Analyzer is a CLI-first Python utility for triaging application logs. It parses warning, error, and critical events, groups repeated issues, infers likely causes, and generates a Markdown remediation report suitable for operational handoff.
 
-Agents:
+## Operational Context
 
-- Log Parser
-- Issue Investigator
-- Fix Recommender
+The system supports incident review and service-health investigation where engineers need a quick, repeatable summary of noisy logs. It can run against bundled sample logs, pasted inline logs, or local log files without external services.
 
-The app includes sample logs and can run without paid APIs.
+## Agent Workflow
 
-## Features
+- **Log Parser:** extracts warning, error, and critical events from raw log text.
+- **Issue Investigator:** groups repeated events and assigns a severity score.
+- **Fix Recommender:** maps issue patterns to likely causes and remediation steps.
 
-- Analyze bundled sample logs
-- Analyze pasted inline logs
-- Analyze a local `.log` or `.txt` file
-- Extract warnings, errors, and critical events
-- Group repeated issues
-- Generate a Markdown remediation report
-- Optional Streamlit interface
+## Capabilities
 
-## Project Structure
+- CLI analysis for sample, inline, or file-based logs
+- Optional Streamlit interface for interactive review
+- Grouping of repeated operational events
+- Severity assessment across warning, error, and critical levels
+- Root-cause notes for common failure patterns
+- Markdown remediation report generation
+
+## Repository Structure
 
 ```text
 multi-agent-log-analyzer/
-├── app.py
-├── src/
-│   ├── __init__.py
-│   └── log_analyzer.py
-├── sample_data/
-│   ├── auth.log
-│   ├── database.log
-│   └── web.log
-├── screenshots/
-│   └── .gitkeep
-├── .env.example
-├── .gitignore
-├── LICENSE
-├── README.md
-└── requirements.txt
+|-- app.py
+|-- src/
+|   |-- __init__.py
+|   `-- log_analyzer.py
+|-- sample_data/
+|   |-- auth.log
+|   |-- database.log
+|   `-- web.log
+|-- screenshots/
+|   `-- .gitkeep
+|-- .env.example
+|-- .gitignore
+|-- LICENSE
+|-- README.md
+`-- requirements.txt
 ```
 
-## Setup
+## Local Setup
 
 ```powershell
 python -m venv .venv
@@ -65,12 +66,12 @@ python -m src.log_analyzer --inline "2026-06-15 ERROR payment timeout"
 streamlit run app.py
 ```
 
-## Output
+## Report Output
 
-The analyzer prints a Markdown report with:
+Generated reports include:
 
-- Issue summary
-- Severity assessment
-- Likely root cause
-- Suggested remediation checklist
-
+- issue triage table
+- severity assessment
+- likely root-cause notes
+- remediation checklist
+- priority recommendation

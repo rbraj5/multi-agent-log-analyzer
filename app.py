@@ -6,7 +6,7 @@ from src.log_analyzer import SAMPLES, analyze_logs, load_sample
 
 
 def main() -> None:
-    st.set_page_config(page_title="Multi-Agent Log Analyzer", page_icon="🔎", layout="wide")
+    st.set_page_config(page_title="Multi-Agent Log Analyzer", layout="wide")
     st.title("Multi-Agent Log Analyzer")
 
     sample_name = st.selectbox("Sample log", sorted(SAMPLES))

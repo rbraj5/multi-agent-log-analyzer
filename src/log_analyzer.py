@@ -136,7 +136,7 @@ def load_sample(name: str) -> str:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Analyze logs with a simple multi-agent workflow.")
+    parser = argparse.ArgumentParser(description="Analyze logs with a multi-agent triage workflow.")
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--sample", choices=sorted(SAMPLES))
     source.add_argument("--file", type=Path)
@@ -160,4 +160,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
